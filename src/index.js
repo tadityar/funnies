@@ -1,10 +1,16 @@
-import _ from 'lodash';
 import defaultMessages from './funnies';
-import FunniesComponent from './react';
+import shuffle from 'lodash/shuffle';
+import sample from 'lodash/sample';
 
 class Funnies {
-  constructor(messages=[]) {
-    this.messages = defaultMessages.concat(messages);
+  constructor(messages = [], opts = {}) {
+    // Should messages be appended to what is already there or be used as a substitute?
+    opts.appendMessages = typeof opts.appendMessages === 'undefined' ? true : opts.appendMessages;
+    if (opts.appendMessages) {
+      this.messages = shuffle(defaultMessages.concat(messages));
+    } else {
+      this.messages = shuffle(messages);
+    }
 
     // convert messages into a map of message to how many times it has been
     // used.
@@ -21,7 +27,7 @@ class Funnies {
       if (this.record[smallest] > this.record[message]) {
         return message;
       } else if (this.record[smallest] === this.record[message]) {
-        return _.sample([smallest, message]);
+        return sample([smallest, message]);
       } else {
         return smallest;
       }
@@ -29,14 +35,18 @@ class Funnies {
 
     // update the recrd to show that this message was picked
     this.record[smallestMessage] += 1;
+
     return smallestMessage;
   }
 
   messageHTML() {
     let message = this.message();
-    let html = `<div class="funnies">
-      <span class="loading-funny">${message}</span>
-    </div>`.replace(/(\r?\n|^ +)/gm, '');
+    let html = `
+      <div class="funnies">
+        <span class="loading-funny">${message}</span>
+      </div>
+    `.replace(/(\r?\n|^ +)/gm, '');
+
     return {message, html};
   }
 }
@@ -44,11 +54,9 @@ class Funnies {
 export {
   Funnies as default,
   Funnies,
-  FunniesComponent,
 };
 
 // for browser support
 if (typeof window !== 'undefined') {
   window.Funnies = Funnies;
-  window.FunniesComponent = FunniesComponent;
 }
